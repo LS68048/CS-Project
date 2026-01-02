@@ -356,7 +356,7 @@ function move(fromEl, toEl, promotion) {
     updateDOM(); // Update the entire board instead of just the piece moved to account for moves that affect other squares (e.g. castling and en passant)
     draggedPiece = null;
     if (game.turn() != playerColor) {
-        worker.postMessage({type: "calculateMove", game});
+        worker.postMessage({type: "calculateMove", fen: game.fen()});
     }
 }
 
