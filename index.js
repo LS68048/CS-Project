@@ -24,7 +24,7 @@ const pieceMap = {
     bp: "Chess_pdt45.svg",
 };
 
-const worker = new Worker('worker.js');
+const worker = new Worker('./worker.js');
 
 worker.onmessage = function(event) {
     const { type, moveToPerform } = event.data;
@@ -33,6 +33,9 @@ worker.onmessage = function(event) {
         const fromEl = document.getElementById(moveToPerform.from);
         const toEl = document.getElementById(moveToPerform.to);
         move(fromEl, toEl, moveToPerform.promotion);
+    }
+    else {
+        console.log(event);
     }
 };
 

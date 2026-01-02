@@ -2,9 +2,9 @@ import { Chess } from "https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm";
 const game = new Chess();
 
 self.onmessage = function (event) {
-    console.log("Received event");
+    this.postMessage ({type:"log", message:"Received"})
     const { type, fen } = event.data;
-    game.load(fen)
+    game.load(fen);
 
     if (type == "calculateMove") {
         fillTree();
