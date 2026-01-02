@@ -1,6 +1,9 @@
+var game;
+
 self.onmessage = function (event) {
     console.log("Received event");
-    const { type, game } = event.data;
+    const { type } = event.data;
+    game = event.data.game
 
     if (type == "calculateMove") {
         fillTree();
