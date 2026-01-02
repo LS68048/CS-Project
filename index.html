@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Singleplayer Chess</title>
+        <link href="index.css" rel="stylesheet" />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+        />
+        <script type="module">
+            import { Chess } from "https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm";
+            const game = new Chess();
+            window.game = game;
+        </script>
+    </head>
+    <body>
+        <button onclick="localStorage.clear(); window.location.reload()">Clear LocalStorage</button>
+        <div id="board-container" class="board-container">
+            <div class="eval-bar"><div id="blackEval" class="eval-bar-black"></div></div>
+            <table id="board" class="board"></table>
+            <div id="promoter" class="promoter" style="display: none">
+                <div class="close-container" onclick="closePromoter()">
+                    <span id="close"></span>
+                </div>
+            </div>
+            <div>
+                <button id="undoButton">
+                    <img
+                        src="Undo.svg"
+                        height="100"
+                        width="100"
+                        onclick="undo()"
+                    />
+                </button>
+                <button id="redoButton" disabled>
+                    <img
+                        src="Undo.svg"
+                        height="100"
+                        width="100"
+                        style="transform: scale(-1, 1)"
+                        onclick="redo()"
+                    />
+                </button>
+                <table id="movelist"></table>
+            </div>
+        </div>
+        <script src="./index.js" defer></script>
+    </body>
+</html>

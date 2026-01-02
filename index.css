@@ -1,0 +1,138 @@
+body {
+    background-color: #333;
+}
+
+.board {
+    position: relative;
+    top:-2px;
+}
+
+.square {
+    height: 100px;
+    width: 100px;
+    text-align: center;
+    vertical-align: middle;
+    position: relative;
+}
+
+.square.hovered {
+    box-sizing: border-box;
+    border: solid 5px rgba(255, 255, 255, 0.65);
+}
+
+.dark {
+    background-color: #739552;
+}
+
+.dark.highlighted {
+    background-color: #b9ca43;
+}
+
+.light {
+    background-color: #ebecd0;
+}
+
+.light.highlighted {
+    background-color: #f5f682;
+}
+
+.piece {
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    cursor: grab;
+    user-select: none;
+    transform: translate(-50%, -50%);
+}
+
+.piece.dragging {
+    cursor: grabbing;
+}
+
+div.hint {
+    display: inline-block;
+    width: 35%;
+    height: 35%;
+    background-color: rgba(0, 0, 0, 0.14);
+    border-radius: 100%;
+}
+
+div.hint.capture {
+    width: 75%;
+    height: 75%;
+    background-color: rgba(0, 0, 0, 0);
+    border: solid 12.5px rgba(0, 0, 0, 0.14);
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+}
+
+.board-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.promoter {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: white;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.65);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.promoter > .img-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding-top: 7px;
+    padding-bottom: 7px;
+}
+
+.promoter > :hover {
+    background-color: #eee;
+    cursor: pointer;
+}
+
+.close-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 102px;
+    height: 40px;
+    background-color: #fff;
+}
+
+#close:after {
+    display: inline-block;
+    font-size: xx-large;
+    content: "\00d7";
+}
+
+button {
+    cursor: pointer;
+}
+
+.move {
+    width: 50px;
+    height: 50px;
+}
+
+.move.highlighted {
+    background-color: #fff;
+}
+
+.eval-bar {
+    display: flex;
+    width: 20px;
+    height: 830px;
+    background-color:white;
+    align-items:end;
+}
+
+.eval-bar-black {
+    width: 20px;
+    background-color: black;
+}
