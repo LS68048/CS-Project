@@ -332,7 +332,7 @@ function move(fromEl, toEl, promotion) {
         } else row = historyBoard.lastChild;
         row.appendChild(moveListEl);
         if (game.turn() != playerColor) {
-            worker.postMessage({ type: "calculateMove", color: playerColor, move });
+            worker.postMessage({ type: "calculateMove", colour: playerColor, move });
         }
     } catch (e) {
         if (e.toString().startsWith("Error: Invalid move")) {

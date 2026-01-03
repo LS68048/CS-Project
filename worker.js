@@ -125,9 +125,9 @@ function evaluate(move, color) {
     game.load(move.after);
     var board = game.board();
     
-    if (move.captured != undefined) score += evaluations[move.captured] * game.turn() == color ? -1 : 1;
+    if (move.captured != undefined) score += evaluations[move.captured] * (game.turn() == color ? -1 : 1);
     if (game.isCheckmate())
-        score += 1000 * color == game.turn() ? -1 : 1; // Checkmate is really bad or really good
+        score += 1000 * (color == game.turn() ? -1 : 1); // Checkmate is really bad or really good
     else if (game.isGameOver()) score -= 1000; // We want to WIN
 
     for (const i of board) {
@@ -135,9 +135,9 @@ function evaluate(move, color) {
             if (square == null) continue;
             if (square.type == "k") continue;
 
-            score += evaluations[square.type] * color == square.color ? 10 : -10;
+            score += evaluations[square.type] * (color == square.color ? -1 : 1);
         }
     }
-
+    
     return score;
 }
