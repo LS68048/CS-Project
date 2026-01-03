@@ -2,6 +2,7 @@
 <html>
     <head>
         <title>Singleplayer Chess</title>
+        <link rel="icon" type="image/x-icon" href="/King.ico">
         <link href="index.css" rel="stylesheet" />
         <link
             rel="stylesheet"
@@ -14,7 +15,7 @@
         </script>
     </head>
     <body>
-        <button onclick="localStorage.clear(); window.location.reload()">Clear LocalStorage</button>
+        <button onclick="localStorage.clear(); window.location.reload(true)">Clear LocalStorage</button>
         <div id="board-container" class="board-container">
             <div class="eval-bar"><div id="blackEval" class="eval-bar-black"></div></div>
             <table id="board" class="board"></table>
@@ -44,6 +45,7 @@
                 <table id="movelist"></table>
             </div>
         </div>
+        <p id="searchCount"></p>
         <script src="./index.js" defer></script>
     </body>
 </html>

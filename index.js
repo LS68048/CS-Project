@@ -2,6 +2,7 @@ var boardDOM = [];
 var playerColor = "w";
 const promoter = document.getElementById("promoter");
 var historyBoard = document.getElementById("movelist");
+const searchCount = document.getElementById("searchCount");
 var historyBoardElems = [];
 const boardElem = document.querySelector("#board");
 var highlightedMove;
@@ -24,18 +25,19 @@ const pieceMap = {
     bp: "Chess_pdt45.svg",
 };
 
-const worker = new Worker('./worker.js');
+const worker = new Worker("./worker.js", { type: "module" });
 
-worker.onmessage = function(event) {
+worker.onmessage = function (event) {
     const { type, moveToPerform } = event.data;
 
     if (type === "moveTime") {
         const fromEl = document.getElementById(moveToPerform.from);
         const toEl = document.getElementById(moveToPerform.to);
         move(fromEl, toEl, moveToPerform.promotion);
-    }
-    else {
-        console.log(event);
+    } else if (type == "searchCount") {
+        searchCount.innerText = event.data.num;
+    } else {
+        console.log(event.data);
     }
 };
 
@@ -260,7 +262,7 @@ function move(fromEl, toEl, promotion) {
         game.get(from).type == "p" &&
         (to[1] == "1" || to[1] == "8") &&
         from != to &&
-        !promoteSquare
+        !promoteSquare && game.turn() == playerColor
     ) {
         promoter.style.transform = `translate(${
             toEl.getBoundingClientRect().left -
@@ -329,11 +331,15 @@ function move(fromEl, toEl, promotion) {
             historyBoard.appendChild(row);
         } else row = historyBoard.lastChild;
         row.appendChild(moveListEl);
+        if (game.turn() != playerColor) {
+            worker.postMessage({ type: "calculateMove", color: playerColor, move });
+        }
     } catch (e) {
         if (e.toString().startsWith("Error: Invalid move")) {
             // Converting to string means we don't have to check the type of error
             if (from != to) {
                 console.log("Invalid move!");
+                console.log(move);
             } else if (toggle) {
                 recentHighlight.classList.remove("highlighted");
                 recentHighlight = null;
@@ -358,9 +364,6 @@ function move(fromEl, toEl, promotion) {
 
     updateDOM(); // Update the entire board instead of just the piece moved to account for moves that affect other squares (e.g. castling and en passant)
     draggedPiece = null;
-    if (game.turn() != playerColor) {
-        worker.postMessage({type: "calculateMove", fen: game.fen()});
-    }
 }
 
 const evaluations = {
@@ -371,7 +374,7 @@ const evaluations = {
     q: 90,
 };
 
-function evaluate(update = true) {
+function evaluate() {
     var black = 0;
     var white = 0;
     for (const rank of boardDOM) {
@@ -394,12 +397,10 @@ function evaluate(update = true) {
     }
     black = black == 0 ? 1 : black; // Prevent divide by zero
     white = white == 0 ? 1 : white;
-    if (update)
-        document.getElementById("blackEval").style.height = `${
-            (black / (white + black)) * 830 + 1
-        }px`;
+    document.getElementById("blackEval").style.height = `${
+        (black / (white + black)) * 830 + 1
+    }px`;
     // 1 is added purely for aesthetic reasons, so when it's perfectly equal the bar sits aligned with the center of the board
-    else return black / (white + black);
 }
 
 function generateHints() {

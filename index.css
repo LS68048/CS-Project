@@ -1,5 +1,6 @@
 body {
     background-color: #333;
+    color: #fff;
 }
 
 .board {
@@ -121,7 +122,7 @@ button {
 }
 
 .move.highlighted {
-    background-color: #fff;
+    background-color: #777;
 }
 
 .eval-bar {
@@ -135,4 +136,10 @@ button {
 .eval-bar-black {
     width: 20px;
     background-color: black;
+}
+
+#movelist {
+    height: 830px;
+    overflow-y: scroll;
+    display: block;
 }
