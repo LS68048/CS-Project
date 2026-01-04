@@ -140,7 +140,17 @@ function flip_board() {
 
 function updateDOM() {
     if (game.isGameOver()) {
-        boardElem.innerHTML = "GAME OVER NERD";
+        var reason;
+        if (game.isCheckmate()) {
+            reason = `You ${game.turn() == playerColor ? "lose!" : "win!"}`;
+        } else if (game.isStalemate()) {
+            reason = "Stalemate!";
+        } else if (game.isInsufficientMaterial()) {
+            reason = "Insufficient material!";
+        } else {
+            reason = "Draw!";
+        }
+        endGame(reason);
         return;
     }
     for (const rank of boardDOM) {
@@ -300,9 +310,15 @@ document.addEventListener("click", (e) => {
 
 document.addEventListener("keypress", (e) => {
     if (e.key == "p") {
-        document.querySelectorAll(".debug").forEach(e => e.style.display = e.style.display == "block" ? "none" : "block");
+        document
+            .querySelectorAll(".debug")
+            .forEach(
+                (e) =>
+                    (e.style.display =
+                        e.style.display == "block" ? "none" : "block")
+            );
     }
-})
+});
 
 function hint_move(e) {
     var hint = e.target.querySelector("div") || e.target;
@@ -348,8 +364,8 @@ function move(fromEl, toEl, promotion) {
         if (undoneMoves.length > 0) {
             refreshHistoryBoard();
             document.getElementById("redoButton").disabled = true;
-            document.getElementById("undoButton").disabled = false;
         }
+        document.getElementById("undoButton").disabled = false;
         undoneMoves = [];
         gameHistory.push(move);
         localStorage.setItem(
@@ -409,6 +425,7 @@ function move(fromEl, toEl, promotion) {
                 type: "calculateMove",
                 colour: playerColor,
                 move,
+                difficulty: options.difficulty,
             });
         }
     } catch (e) {
@@ -677,6 +694,7 @@ var stored = localStorage.getItem("game");
 options = localStorage.getItem("options");
 if (options != null) options = JSON.parse(options);
 if (stored != null) {
+    document.getElementById("redoButton").disabled = true;
     stored = JSON.parse(stored);
     playerColor = stored.colour;
     gameHistory = stored.history;
@@ -693,20 +711,13 @@ if (stored != null) {
             playerTimer.style.display = "none";
             botTimer.style.display = "none";
         }
-
-        if (game.turn() != playerColor) {
-            worker.postMessage({
-                type: "calculateMove",
-                colour: playerColor,
-                move: gameHistory[gameHistory.length - 1],
-            });
-        }
     }
 } else {
     toggleMenu(true);
 }
 
 function startGame() {
+    refreshHistoryBoard();
     toggleMenu(false);
     toggleOptions(false);
 
@@ -714,7 +725,9 @@ function startGame() {
         playerTimer.style.display = "none";
         botTimer.style.display = "none";
     } else {
-        var seconds = options.timerLength.value;
+        playerTimer.style.display = "block";
+        botTimer.style.display = "block";
+        var seconds = options.timerLength;
         playerTimer.dataset.seconds = seconds;
         botTimer.dataset.seconds = seconds;
         init_timers();
@@ -729,8 +742,11 @@ function startGame() {
             type: "calculateMove",
             colour: playerColor,
             move: null,
+            difficulty: options.difficulty,
         });
     }
+    document.getElementById("undoButton").disabled = true;
+    document.getElementById("redoButton").disabled = true;
     flip_board();
 }
 
@@ -749,13 +765,16 @@ function timerCallback() {
     }${seconds}`;
 
     var storedGame = JSON.parse(localStorage.getItem("game"));
-    storedGame.timers[game.turn() == playerColor ? 0 : 1] =
-        parseInt(timer.dataset.seconds) + 1;
 
-    localStorage.setItem("game", JSON.stringify(storedGame));
+    if (storedGame != null) {
+        storedGame.timers[game.turn() == playerColor ? 0 : 1] =
+            parseInt(timer.dataset.seconds) + 1;
+
+        localStorage.setItem("game", JSON.stringify(storedGame));
+    }
 
     if (timer.dataset.seconds == 0) {
-        // game over
+        endGame("Time ran out!");
     } else {
         timerTimeout = setTimeout(timerCallback, 1000);
     }
@@ -787,7 +806,8 @@ function saveOptions() {
         colour: playerColor,
         timers: document.getElementById("toggle").checked,
         timerLength:
-            document.getElementById("timerLength").selectedOptions[0].value,
+            document.getElementById("timerLength").value,
+        difficulty: parseInt(document.getElementById("difficulty").value),
     };
     localStorage.setItem("options", JSON.stringify(options));
 }
@@ -798,6 +818,7 @@ function loadOptions() {
         options = JSON.parse(options);
         document.getElementById("toggle").checked = options.timers;
         document.getElementById("timerLength").value = options.timerLength;
+        document.getElementById("difficulty").value = options.difficulty;
         setPlayerColour(options.colour);
     }
 }
@@ -813,6 +834,23 @@ function setPlayerColour(colour) {
         black.classList.add("selected");
         white.classList.remove("selected");
     }
+}
+
+function endGame(reason) {
+    document.getElementById("title").innerText = `Game Over: ${reason}`;
+    localStorage.removeItem("game");
+    game.reset();
+
+    if (highlightedSquares) {
+        highlightedSquares.forEach(element => element.classList.remove("highlighted"));
+        highlightedSquares = [];
+    }
+    if (timerTimeout) {
+        clearTimeout(timerTimeout);
+    }
+
+    gameHistory = [];
+    toggleMenu(true);
 }
 
 loadOptions();

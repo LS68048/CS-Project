@@ -5,7 +5,8 @@ var color;
 var num = 0;
 
 self.onmessage = function (event) {
-    var { type, colour, move } = event.data;
+    var { type, colour, move, difficulty } = event.data;
+    difficulty = parseInt(difficulty)
     color = colour;
 
     if (type == "calculateMove") {
@@ -20,17 +21,39 @@ self.onmessage = function (event) {
         num = 0;
         rootNode = alphabeta(rootNode, depth, -Infinity, Infinity, true);
 
-        const bestScore = Math.max(
-            ...rootNode.children.map((node) => node.eval)
-        );
-        rootNode.children = rootNode.children.filter(
-            (node) => node.eval === bestScore
-        );
+        var moveToPerform;
+        const third = Math.floor(rootNode.children.length);
 
-        const moveToPerform =
-            rootNode.children[
-                Math.floor(Math.random() * rootNode.children.length)
-            ].move;
+        if (difficulty == 4) {
+            const bestScore = Math.max(
+                ...rootNode.children.map((node) => node.eval)
+            );
+            rootNode.children = rootNode.children.filter(
+                (node) => node.eval === bestScore
+            );
+
+            moveToPerform =
+                rootNode.children[
+                    Math.floor(Math.random() * rootNode.children.length)
+                ].move;
+        }
+        else if (difficulty > 0) {
+            moveToPerform = rootNode.children[Math.floor(Math.random() * third) + (difficulty - 1) * third].move
+        }
+        else {
+            const worstScore = Math.min(
+                ...rootNode.children.map((node) => node.eval)
+            );
+
+            rootNode.children = rootNode.children.filter(
+                (node) => node.eval === worstScore
+            );
+
+            moveToPerform =
+                rootNode.children[
+                    Math.floor(Math.random() * rootNode.children.length)
+                ].move;
+        }
         postMessage({ type: "moveTime", moveToPerform });
     }
 };
@@ -121,7 +144,7 @@ const evaluations = {
     n: 30,
     b: 30,
     r: 50,
-    q: 900,
+    q: 100,
 };
 
 function evaluate(move, color) {

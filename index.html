@@ -18,7 +18,7 @@
         <div style="display: none" id="menuBackground" class="menu-background">
             <div class="menu" id="mainMenu">
                 <div class="menu-row">
-                    <h2><b>Singleplayer Chess</b></h2>
+                    <h2><b id="title">Singleplayer Chess</b></h2>
                 </div>
                 <div class="menu-row">
                     <button onclick="startGame()">PLAY</button>
@@ -28,17 +28,36 @@
             <div class="menu" id="optionsMenu">
                 <div class="menu-row">Select your colour:</div>
                 <div class="menu-row">
-                    <img class="colour-select" id="blackColourSelect" src="Pieces/Chess_qdt45.svg" width="60" height="60" onclick="setPlayerColour('b')">
-                    <div style="width:15px;"></div>
-                    <img class="colour-select" id="whiteColourSelect" src="Pieces/Chess_qlt45.svg" width="60" height="60" onclick="setPlayerColour('w')">
+                    <img
+                        class="colour-select"
+                        id="blackColourSelect"
+                        src="Pieces/Chess_qdt45.svg"
+                        width="60"
+                        height="60"
+                        onclick="setPlayerColour('b')"
+                    />
+                    <div style="width: 15px"></div>
+                    <img
+                        class="colour-select"
+                        id="whiteColourSelect"
+                        src="Pieces/Chess_qlt45.svg"
+                        width="60"
+                        height="60"
+                        onclick="setPlayerColour('w')"
+                    />
                 </div>
                 <div class="menu-row">
-                    <p style="padding-right:10px;">Timer:</p>
-                    <input type="checkbox" id="toggle" class="toggle-input" onclick="toggleTimers()">
+                    <p style="padding-right: 10px">Timer:</p>
+                    <input
+                        type="checkbox"
+                        id="toggle"
+                        class="toggle-input"
+                        onclick="toggleTimers()"
+                    />
                     <label for="toggle" class="toggle-label"></label>
                 </div>
                 <div class="menu-row">
-                    <select id="timerLength" style="display: none;">
+                    <select id="timerLength" style="display: none">
                         <option value="60">1 Minute</option>
                         <option value="180">3 Minutes</option>
                         <option value="300">5 Minutes</option>
@@ -48,14 +67,33 @@
                     </select>
                 </div>
                 <div class="menu-row">
-                    <button style="margin-top:20px;" onclick="saveOptions()">SAVE</button>
+                    <p>AI Difficulty:</p>
+                    <div style="width:10px;"></div>
+                    <select id="difficulty">
+                        <option value="0">Ishraful</option>
+                        <option value="1">Low</option>
+                        <option value="2">Medium</option>
+                        <option value="3">High</option>
+                        <option value="4">Best</option>
+                    </select>
+                </div>
+                <div class="menu-row">
+                    <button style="margin-top: 20px" onclick="saveOptions()">
+                        SAVE
+                    </button>
                 </div>
             </div>
         </div>
-        <button onclick="localStorage.clear(); window.location.reload(true)" class="debug">
+        <button
+            onclick="localStorage.clear(); window.location.reload(true)"
+            class="debug"
+        >
             Clear LocalStorage
         </button>
-        <button onclick="localStorage.removeItem('game'); window.location.reload(true)" class="debug">
+        <button
+            onclick="localStorage.removeItem('game'); window.location.reload(true)"
+            class="debug"
+        >
             Reset game
         </button>
         <div class="move-timer bot dark" id="botTimer">0:00</div>
@@ -71,14 +109,61 @@
             </div>
             <div class="list-container">
                 <div>
-                    <button id="undoButton" class="move-button" onclick="undo()">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="73px" viewBox="0 -960 960 960" width="73px" fill="#ffffff"><path d="M280-200v-80h284q63 0 109.5-40T720-420q0-60-46.5-100T564-560H312l104 104-56 56-200-200 200-200 56 56-104 104h252q97 0 166.5 63T800-420q0 94-69.5 157T564-200H280Z"/></svg>
+                    <button
+                        id="undoButton"
+                        class="move-button"
+                        onclick="undo()"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            height="73px"
+                            viewBox="0 -960 960 960"
+                            width="73px"
+                            fill="#ffffff"
+                        >
+                            <path
+                                d="M280-200v-80h284q63 0 109.5-40T720-420q0-60-46.5-100T564-560H312l104 104-56 56-200-200 200-200 56 56-104 104h252q97 0 166.5 63T800-420q0 94-69.5 157T564-200H280Z"
+                            />
+                        </svg>
                     </button>
-                    <button id="redoButton" class="move-button" onclick="redo()" disabled>
-                        <svg style="transform: scale(-1, 1)" xmlns="http://www.w3.org/2000/svg" height="73px" viewBox="0 -960 960 960" width="73px" fill="#ffffff"><path d="M280-200v-80h284q63 0 109.5-40T720-420q0-60-46.5-100T564-560H312l104 104-56 56-200-200 200-200 56 56-104 104h252q97 0 166.5 63T800-420q0 94-69.5 157T564-200H280Z"/></svg>
+                    <button
+                        id="redoButton"
+                        class="move-button"
+                        onclick="redo()"
+                        disabled
+                    >
+                        <svg
+                            style="transform: scale(-1, 1)"
+                            xmlns="http://www.w3.org/2000/svg"
+                            height="73px"
+                            viewBox="0 -960 960 960"
+                            width="73px"
+                            fill="#ffffff"
+                        >
+                            <path
+                                d="M280-200v-80h284q63 0 109.5-40T720-420q0-60-46.5-100T564-560H312l104 104-56 56-200-200 200-200 56 56-104 104h252q97 0 166.5 63T800-420q0 94-69.5 157T564-200H280Z"
+                            />
+                        </svg>
                     </button>
                 </div>
                 <table id="movelist"></table>
+                <div style="text-align: center;" class="resign">
+                    <button class="move-button resign" onclick="endGame('You resigned!')">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            height="24px"
+                            viewBox="0 -960 960 960"
+                            width="24px"
+                            fill="#e3e3e3"
+                        >
+                            <path
+                                d="M200-120v-680h360l16 80h224v400H520l-16-80H280v280h-80Zm300-440Zm86 160h134v-240H510l-16-80H280v240h290l16 80Z"
+                            />
+                        </svg>
+                        <div style="width:10px;"></div>
+                        <p>Resign</p>
+                    </button>
+                </div>
             </div>
         </div>
         <div class="move-timer player light" id="playerTimer">0:00</div>
