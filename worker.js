@@ -22,7 +22,7 @@ self.onmessage = function (event) {
         rootNode = alphabeta(rootNode, depth, -Infinity, Infinity, true);
 
         var moveToPerform;
-        const third = Math.floor(rootNode.children.length);
+        const third = Math.floor(rootNode.children.length/3);
 
         if (difficulty == 4) {
             const bestScore = Math.max(
@@ -38,7 +38,7 @@ self.onmessage = function (event) {
                 ].move;
         }
         else if (difficulty > 0) {
-            moveToPerform = rootNode.children[Math.floor(Math.random() * third) + (difficulty - 1) * third].move
+            moveToPerform = rootNode.children[Math.floor(Math.random()) * third + (difficulty - 1) * third].move
         }
         else {
             const worstScore = Math.min(
