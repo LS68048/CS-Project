@@ -229,7 +229,8 @@ function mouseDown(e) {
         draggedPiece = null;
 
         if (toggle) {
-            recentHighlight.classList.remove("highlighted");
+            if (e.target.parentNode != recentHighlight)
+                recentHighlight.classList.remove("highlighted");
             recentHighlight = null;
             hoveredSquare.classList.remove("hovered");
             hoveredSquare = null;
