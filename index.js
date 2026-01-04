@@ -713,6 +713,8 @@ if (stored != null) {
         }
     }
 } else {
+    setPlayerColour("w");
+    document.getElementById("difficulty").value = 3;
     toggleMenu(true);
 }
 
