@@ -2,7 +2,7 @@
 <html>
     <head>
         <title>Singleplayer Chess</title>
-        <link rel="icon" type="image/x-icon" href="/King.ico">
+        <link rel="icon" type="image/x-icon" href="/King.ico" />
         <link href="index.css" rel="stylesheet" />
         <link
             rel="stylesheet"
@@ -15,37 +15,74 @@
         </script>
     </head>
     <body>
-        <button onclick="localStorage.clear(); window.location.reload(true)">Clear LocalStorage</button>
+        <div style="display: none" id="menuBackground" class="menu-background">
+            <div class="menu" id="mainMenu">
+                <div class="menu-row">
+                    <h2><b>Singleplayer Chess</b></h2>
+                </div>
+                <div class="menu-row">
+                    <button onclick="startGame()">PLAY</button>
+                    <button onclick="toggleOptions(true)">OPTIONS</button>
+                </div>
+            </div>
+            <div class="menu" id="optionsMenu">
+                <div class="menu-row">Select your colour:</div>
+                <div class="menu-row">
+                    <img class="colour-select" id="blackColourSelect" src="Pieces/Chess_qdt45.svg" width="60" height="60" onclick="setPlayerColour('b')">
+                    <div style="width:15px;"></div>
+                    <img class="colour-select" id="whiteColourSelect" src="Pieces/Chess_qlt45.svg" width="60" height="60" onclick="setPlayerColour('w')">
+                </div>
+                <div class="menu-row">
+                    <p style="padding-right:10px;">Timer:</p>
+                    <input type="checkbox" id="toggle" class="toggle-input" onclick="toggleTimers()">
+                    <label for="toggle" class="toggle-label"></label>
+                </div>
+                <div class="menu-row">
+                    <select id="timerLength" style="display: none;">
+                        <option value="60">1 Minute</option>
+                        <option value="180">3 Minutes</option>
+                        <option value="300">5 Minutes</option>
+                        <option value="600">10 Minutes</option>
+                        <option value="1800">30 Minutes</option>
+                        <option value="3600">60 Minutes</option>
+                    </select>
+                </div>
+                <div class="menu-row">
+                    <button style="margin-top:20px;" onclick="saveOptions()">SAVE</button>
+                </div>
+            </div>
+        </div>
+        <button onclick="localStorage.clear(); window.location.reload(true)" class="debug">
+            Clear LocalStorage
+        </button>
+        <button onclick="localStorage.removeItem('game'); window.location.reload(true)" class="debug">
+            Reset game
+        </button>
+        <div class="move-timer bot dark" id="botTimer">0:00</div>
         <div id="board-container" class="board-container">
-            <div class="eval-bar"><div id="blackEval" class="eval-bar-black"></div></div>
+            <div class="eval-bar">
+                <div id="blackEval" class="eval-bar-black"></div>
+            </div>
             <table id="board" class="board"></table>
             <div id="promoter" class="promoter" style="display: none">
                 <div class="close-container" onclick="closePromoter()">
                     <span id="close"></span>
                 </div>
             </div>
-            <div>
-                <button id="undoButton">
-                    <img
-                        src="Undo.svg"
-                        height="100"
-                        width="100"
-                        onclick="undo()"
-                    />
-                </button>
-                <button id="redoButton" disabled>
-                    <img
-                        src="Undo.svg"
-                        height="100"
-                        width="100"
-                        style="transform: scale(-1, 1)"
-                        onclick="redo()"
-                    />
-                </button>
+            <div class="list-container">
+                <div>
+                    <button id="undoButton" class="move-button" onclick="undo()">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="73px" viewBox="0 -960 960 960" width="73px" fill="#ffffff"><path d="M280-200v-80h284q63 0 109.5-40T720-420q0-60-46.5-100T564-560H312l104 104-56 56-200-200 200-200 56 56-104 104h252q97 0 166.5 63T800-420q0 94-69.5 157T564-200H280Z"/></svg>
+                    </button>
+                    <button id="redoButton" class="move-button" onclick="redo()" disabled>
+                        <svg style="transform: scale(-1, 1)" xmlns="http://www.w3.org/2000/svg" height="73px" viewBox="0 -960 960 960" width="73px" fill="#ffffff"><path d="M280-200v-80h284q63 0 109.5-40T720-420q0-60-46.5-100T564-560H312l104 104-56 56-200-200 200-200 56 56-104 104h252q97 0 166.5 63T800-420q0 94-69.5 157T564-200H280Z"/></svg>
+                    </button>
+                </div>
                 <table id="movelist"></table>
             </div>
         </div>
-        <p id="searchCount"></p>
+        <div class="move-timer player light" id="playerTimer">0:00</div>
+        <p id="searchCount" class="debug"></p>
         <script src="./index.js" defer></script>
     </body>
 </html>

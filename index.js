@@ -3,9 +3,16 @@ var playerColor = "w";
 const promoter = document.getElementById("promoter");
 var historyBoard = document.getElementById("movelist");
 const searchCount = document.getElementById("searchCount");
+const menu = document.getElementById("mainMenu");
+const optionsMenu = document.getElementById("optionsMenu");
+const menuBackground = document.getElementById("menuBackground");
+const boardElem = document.getElementById("board");
+const botTimer = document.getElementById("botTimer");
+const playerTimer = document.getElementById("playerTimer");
+var timerTimeout;
 var historyBoardElems = [];
-const boardElem = document.querySelector("#board");
 var highlightedMove;
+var options;
 
 var gameHistory = [];
 var undoneMoves = [];
@@ -35,13 +42,14 @@ worker.onmessage = function (event) {
         const toEl = document.getElementById(moveToPerform.to);
         move(fromEl, toEl, moveToPerform.promotion);
     } else if (type == "searchCount") {
-        searchCount.innerText = event.data.num;
+        searchCount.innerText = `${event.data.num} positions evaluated`;
     } else {
         console.log(event.data);
     }
 };
 
 function init_board() {
+    boardElem.innerHTML = "";
     for (let rank = 0; rank < 8; rank++) {
         var rankElem = document.createElement("tr");
         boardElem.appendChild(rankElem);
@@ -62,9 +70,8 @@ function init_board() {
         }
     }
 
-    if (playerColor == "w") {
-        document.getElementById("blackEval").parentNode.style.display = "block";
-    }
+    document.getElementById("blackEval").parentNode.style.display =
+        playerColor == "w" ? "block" : "flex";
 
     // Setup promoter
     const pieces = ["r", "n", "b", "q"];
@@ -85,10 +92,50 @@ function init_board() {
         promoter.insertBefore(div, promoter.firstChild);
     }
 
-    // Restore moves list if saved game
+    // Restore moves list and highlighted squares if saved game
     if (gameHistory.length > 0) {
         refreshHistoryBoard();
+        var move = gameHistory[gameHistory.length - 1];
+        var fromEl = document.getElementById(move.from);
+        var toEl = document.getElementById(move.to);
+
+        highlightedSquares.push(fromEl, toEl);
+        fromEl.classList.add("highlighted");
+        toEl.classList.add("highlighted");
     }
+}
+
+function init_timers() {
+    for (const timer of [playerTimer, botTimer]) {
+        var seconds = timer.dataset.seconds % 60;
+        timer.innerText = `${Math.floor(timer.dataset.seconds / 60)}:${
+            seconds < 10 ? "0" : ""
+        }${seconds}`;
+    }
+}
+
+function flip_board() {
+    for (let rank = 0; rank < 8; rank++) {
+        var rankElem = boardElem.children[rank];
+        for (let file = 0; file < 8; file++) {
+            var displayRank = playerColor == "b" ? rank : 7 - rank;
+            var square = String.fromCharCode(file + 97) + (displayRank + 1);
+            var squareElem = rankElem.children[file];
+            if (squareElem.id == square) continue;
+            var correctColour =
+                (displayRank * 7 + file) % 2 == 0 ? "dark" : "light";
+            var currentColour = correctColour == "dark" ? "light" : "dark";
+            squareElem.classList.replace(currentColour, correctColour);
+            squareElem.id = square;
+            squareElem.dataset.square = square;
+            squareElem.dataset.piece = null;
+        }
+    }
+
+    document.getElementById("blackEval").parentNode.style.display =
+        playerColor == "w" ? "block" : "flex";
+
+    updateDOM();
 }
 
 function updateDOM() {
@@ -163,8 +210,11 @@ function mouseDown(e) {
     clearHints();
     generateHints();
 
-    // Prevent dragging pieces when it's not your turn
-    if (e.target.parentNode.dataset.piece[0] != game.turn()) {
+    // Prevent dragging other side's pieces or your own when it's not your turn
+    if (
+        e.target.parentNode.dataset.piece[0] != game.turn() ||
+        game.turn() != playerColor
+    ) {
         draggedPiece.classList.remove("dragging");
         draggedPiece = null;
 
@@ -248,6 +298,12 @@ document.addEventListener("click", (e) => {
     toggle = false;
 });
 
+document.addEventListener("keypress", (e) => {
+    if (e.key == "p") {
+        document.querySelectorAll(".debug").forEach(e => e.style.display = e.style.display == "block" ? "none" : "block");
+    }
+})
+
 function hint_move(e) {
     var hint = e.target.querySelector("div") || e.target;
     move(dragStartSquare, hint.parentNode, "q");
@@ -262,7 +318,8 @@ function move(fromEl, toEl, promotion) {
         game.get(from).type == "p" &&
         (to[1] == "1" || to[1] == "8") &&
         from != to &&
-        !promoteSquare && game.turn() == playerColor
+        !promoteSquare &&
+        game.turn() == playerColor
     ) {
         promoter.style.transform = `translate(${
             toEl.getBoundingClientRect().left -
@@ -291,10 +348,18 @@ function move(fromEl, toEl, promotion) {
         if (undoneMoves.length > 0) {
             refreshHistoryBoard();
             document.getElementById("redoButton").disabled = true;
+            document.getElementById("undoButton").disabled = false;
         }
         undoneMoves = [];
         gameHistory.push(move);
-        localStorage.setItem("game", playerColor + JSON.stringify(gameHistory));
+        localStorage.setItem(
+            "game",
+            JSON.stringify({
+                colour: playerColor,
+                history: gameHistory,
+                timers: [playerTimer.dataset.seconds, botTimer.dataset.seconds],
+            })
+        );
 
         if (promoteSquare) {
             promoter.style.display = "none";
@@ -331,8 +396,20 @@ function move(fromEl, toEl, promotion) {
             historyBoard.appendChild(row);
         } else row = historyBoard.lastChild;
         row.appendChild(moveListEl);
+
+        clearTimeout(timerTimeout);
+        timerPause[game.turn() == playerColor ? 1 : 0] = Date.now() - lastTick;
+        timerTimeout = setTimeout(
+            timerCallback,
+            timerPause[game.turn() == playerColor ? 0 : 1]
+        );
+
         if (game.turn() != playerColor) {
-            worker.postMessage({ type: "calculateMove", colour: playerColor, move });
+            worker.postMessage({
+                type: "calculateMove",
+                colour: playerColor,
+                move,
+            });
         }
     } catch (e) {
         if (e.toString().startsWith("Error: Invalid move")) {
@@ -398,7 +475,7 @@ function evaluate() {
     black = black == 0 ? 1 : black; // Prevent divide by zero
     white = white == 0 ? 1 : white;
     document.getElementById("blackEval").style.height = `${
-        (black / (white + black)) * 830 + 1
+        (black / (white + black)) * 670 + 1
     }px`;
     // 1 is added purely for aesthetic reasons, so when it's perfectly equal the bar sits aligned with the center of the board
 }
@@ -467,7 +544,17 @@ function undo() {
         square.classList.remove("highlighted");
     }
 
-    if (index == 0) return;
+    var highlightedIndex = -1;
+    if (highlightedMove) {
+        highlightedMove.classList.remove("highlighted");
+        highlightedIndex = historyBoardElems.indexOf(highlightedMove) - 1;
+    }
+
+    if (index == 0) {
+        document.getElementById("undoButton").disabled = true;
+        highlightedMove = null;
+        return;
+    }
 
     var prevMove = gameHistory[index - 1];
     var fromEl = document.getElementById(prevMove.from);
@@ -477,11 +564,6 @@ function undo() {
     fromEl.classList.add("highlighted");
     toEl.classList.add("highlighted");
 
-    var highlightedIndex = -1;
-    if (highlightedMove) {
-        highlightedMove.classList.remove("highlighted");
-        highlightedIndex = historyBoardElems.indexOf(highlightedMove) - 1;
-    }
     if (highlightedIndex >= 0) {
         highlightedMove = historyBoardElems[highlightedIndex];
         highlightedMove.classList.add("highlighted");
@@ -522,6 +604,8 @@ function redo() {
     if (highlightedIndex == historyBoardElems.length - 1) {
         document.getElementById("redoButton").disabled = true;
     }
+
+    document.getElementById("undoButton").disabled = false;
 }
 
 function refreshHistoryBoard() {
@@ -555,16 +639,18 @@ function displayPrevMove(e) {
         undoneMoves = gameHistory
             .splice(index + 1, gameHistory.length - 1)
             .toReversed();
+        document.getElementById("redoButton").disabled = false;
     } else {
+        document.getElementById("redoButton").disabled = true;
         undoneMoves = [];
     }
 
     game.load(gameHistory[gameHistory.length - 1].after);
 
-    e.target.classList.add("highlighted");
     if (highlightedMove) {
         highlightedMove.classList.remove("highlighted");
     }
+    e.target.classList.add("highlighted");
     highlightedMove = e.target;
     updateDOM();
 
@@ -583,17 +669,155 @@ function displayPrevMove(e) {
     highlightedSquares.push(fromEl, toEl);
     fromEl.classList.add("highlighted");
     toEl.classList.add("highlighted");
+
+    document.getElementById("undoButton").disabled = false;
 }
 
 var stored = localStorage.getItem("game");
+options = localStorage.getItem("options");
+if (options != null) options = JSON.parse(options);
 if (stored != null) {
-    playerColor = stored[0];
-    stored = stored.substring(1);
-    if (stored != "") {
-        gameHistory = JSON.parse(stored);
+    stored = JSON.parse(stored);
+    playerColor = stored.colour;
+    gameHistory = stored.history;
+    if (gameHistory.length > 0) {
         game.load(gameHistory[gameHistory.length - 1].after);
+
+        if (options.timers) {
+            playerTimer.dataset.seconds = stored.timers[0];
+            botTimer.dataset.seconds = stored.timers[1];
+
+            init_timers();
+            timerCallback();
+        } else {
+            playerTimer.style.display = "none";
+            botTimer.style.display = "none";
+        }
+
+        if (game.turn() != playerColor) {
+            worker.postMessage({
+                type: "calculateMove",
+                colour: playerColor,
+                move: gameHistory[gameHistory.length - 1],
+            });
+        }
+    }
+} else {
+    toggleMenu(true);
+}
+
+function startGame() {
+    toggleMenu(false);
+    toggleOptions(false);
+
+    if (!options.timers) {
+        playerTimer.style.display = "none";
+        botTimer.style.display = "none";
+    } else {
+        var seconds = options.timerLength.value;
+        playerTimer.dataset.seconds = seconds;
+        botTimer.dataset.seconds = seconds;
+        init_timers();
+        timerTimeout = setTimeout(timerCallback, 1000);
+    }
+    if (playerColor != "w") {
+        playerTimer.classList.remove("light");
+        botTimer.classList.remove("dark");
+        playerTimer.classList.add("dark");
+        botTimer.classList.add("light");
+        worker.postMessage({
+            type: "calculateMove",
+            colour: playerColor,
+            move: null,
+        });
+    }
+    flip_board();
+}
+
+var lastTick;
+var timerPause = [1000, 1000];
+
+function timerCallback() {
+    lastTick = Date.now();
+    var timer;
+    timer = game.turn() == playerColor ? playerTimer : botTimer;
+
+    timer.dataset.seconds -= 1;
+    var seconds = timer.dataset.seconds % 60;
+    timer.innerText = `${Math.floor(timer.dataset.seconds / 60)}:${
+        seconds < 10 ? "0" : ""
+    }${seconds}`;
+
+    var storedGame = JSON.parse(localStorage.getItem("game"));
+    storedGame.timers[game.turn() == playerColor ? 0 : 1] =
+        parseInt(timer.dataset.seconds) + 1;
+
+    localStorage.setItem("game", JSON.stringify(storedGame));
+
+    if (timer.dataset.seconds == 0) {
+        // game over
+    } else {
+        timerTimeout = setTimeout(timerCallback, 1000);
     }
 }
+
+// UI stuff
+function toggleMenu(open) {
+    menuBackground.style.display = open ? "flex" : "none";
+    menu.style.display = open ? "flex" : "none";
+}
+
+function toggleOptions(open) {
+    optionsMenu.style.display = open ? "flex" : "none";
+    menu.style.display = open ? "none" : "flex";
+}
+
+function toggleTimers() {
+    const check = document.getElementById("toggle");
+    const select = document.getElementById("timerLength");
+
+    select.style.display = check.checked ? "block" : "none";
+}
+
+function saveOptions() {
+    toggleOptions(false);
+    toggleMenu(true);
+
+    options = {
+        colour: playerColor,
+        timers: document.getElementById("toggle").checked,
+        timerLength:
+            document.getElementById("timerLength").selectedOptions[0].value,
+    };
+    localStorage.setItem("options", JSON.stringify(options));
+}
+
+function loadOptions() {
+    options = localStorage.getItem("options");
+    if (options != null) {
+        options = JSON.parse(options);
+        document.getElementById("toggle").checked = options.timers;
+        document.getElementById("timerLength").value = options.timerLength;
+        setPlayerColour(options.colour);
+    }
+}
+
+function setPlayerColour(colour) {
+    playerColor = colour;
+    var black = document.getElementById("blackColourSelect");
+    var white = document.getElementById("whiteColourSelect");
+    if (colour == "w") {
+        black.classList.remove("selected");
+        white.classList.add("selected");
+    } else {
+        black.classList.add("selected");
+        white.classList.remove("selected");
+    }
+}
+
+loadOptions();
+toggleTimers();
+toggleOptions(false);
 
 init_board();
 //game.load("r1bqkbnr/pPppppp1/n7/8/8/7N/1PPPPPpP/RNBQKB1R w KQkq - 2 6"); // Promote black right white left

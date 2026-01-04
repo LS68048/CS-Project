@@ -5,21 +5,27 @@ var color;
 var num = 0;
 
 self.onmessage = function (event) {
-    const { type, colour, move } = event.data;
+    var { type, colour, move } = event.data;
     color = colour;
 
     if (type == "calculateMove") {
+        if (move == null) {
+            move = {
+                after: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            };
+        }
         rootNode = new MoveTreeNode(move);
         var depth = 4;
         //rootNode = fillTree(rootNode, depth);
         num = 0;
         rootNode = alphabeta(rootNode, depth, -Infinity, Infinity, true);
-        postMessage({type:"log", rootNode});
 
-        const bestScore = Math.max(...rootNode.children.map(node => node.eval));
-        rootNode.children = rootNode.children.filter(node => node.eval === bestScore);
-        
-        postMessage({type:"log", rootNode});
+        const bestScore = Math.max(
+            ...rootNode.children.map((node) => node.eval)
+        );
+        rootNode.children = rootNode.children.filter(
+            (node) => node.eval === bestScore
+        );
 
         const moveToPerform =
             rootNode.children[
@@ -45,13 +51,12 @@ function fillTree(node, depth) {
     postMessage({ type: "searchCount", num });
     game.load(node.move.after);
     for (const move of game.moves({ verbose: true })) {
-        var child = new MoveTreeNode(move)
+        var child = new MoveTreeNode(move);
         child.parent = node;
-        
-        if (depth > 0 && !game.isGameOver())
-            child = fillTree(child, depth - 1);
 
-        node.children.push(child)
+        if (depth > 0 && !game.isGameOver()) child = fillTree(child, depth - 1);
+
+        node.children.push(child);
     }
     return node;
 }
@@ -70,7 +75,7 @@ function alphabeta(node, depth, alpha, beta, maximizingPlayer) {
         let value = -Infinity;
 
         for (const move of game.moves({ verbose: true })) {
-            var child = new MoveTreeNode(move)
+            var child = new MoveTreeNode(move);
             child.parent = node;
 
             node.children.push(child);
@@ -91,7 +96,7 @@ function alphabeta(node, depth, alpha, beta, maximizingPlayer) {
         let value = Infinity;
 
         for (const move of game.moves({ verbose: true })) {
-            var child = new MoveTreeNode(move)
+            var child = new MoveTreeNode(move);
             child.parent = node;
 
             node.children.push(child);
@@ -111,7 +116,6 @@ function alphabeta(node, depth, alpha, beta, maximizingPlayer) {
     }
 }
 
-
 const evaluations = {
     p: 10,
     n: 30,
@@ -124,10 +128,15 @@ function evaluate(move, color) {
     var score = 0;
     game.load(move.after);
     var board = game.board();
-    
-    if (move.captured != undefined) score += evaluations[move.captured] * (game.turn() == color ? -1 : 1);
+
+    if (move.captured != undefined)
+        score += evaluations[move.captured] * (game.turn() == color ? -1 : 1);
     if (game.isCheckmate())
-        score += 1000 * (color == game.turn() ? -1 : 1); // Checkmate is really bad or really good
+        score +=
+            1000 *
+            (color == game.turn()
+                ? -1
+                : 1); // Checkmate is really bad or really good
     else if (game.isGameOver()) score -= 1000; // We want to WIN
 
     for (const i of board) {
@@ -135,9 +144,10 @@ function evaluate(move, color) {
             if (square == null) continue;
             if (square.type == "k") continue;
 
-            score += evaluations[square.type] * (color == square.color ? -1 : 1);
+            score +=
+                evaluations[square.type] * (color == square.color ? -1 : 1);
         }
     }
-    
+
     return score;
 }
