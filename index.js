@@ -139,19 +139,6 @@ function flip_board() {
 }
 
 function updateDOM() {
-    if (game.isGameOver()) {
-        var reason;
-        if (game.isCheckmate()) {
-            reason = `You ${game.turn() == playerColor ? "lose!" : "win!"}`;
-        } else if (game.isStalemate()) {
-            reason = "Stalemate!";
-        } else if (game.isInsufficientMaterial()) {
-            reason = "Insufficient material!";
-        } else {
-            reason = "Draw!";
-        }
-        endGame(reason);
-    }
     for (const rank of boardDOM) {
         for (const square of rank) {
             var expected = game.get(square.dataset.square);
@@ -171,6 +158,19 @@ function updateDOM() {
         }
     }
     evaluate();
+    if (game.isGameOver()) {
+        var reason;
+        if (game.isCheckmate()) {
+            reason = `You ${game.turn() == playerColor ? "lose!" : "win!"}`;
+        } else if (game.isStalemate()) {
+            reason = "Stalemate!";
+        } else if (game.isInsufficientMaterial()) {
+            reason = "Insufficient material!";
+        } else {
+            reason = "Draw!";
+        }
+        endGame(reason);
+    }
 }
 
 var draggedPiece;
