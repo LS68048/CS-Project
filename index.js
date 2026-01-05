@@ -151,7 +151,6 @@ function updateDOM() {
             reason = "Draw!";
         }
         endGame(reason);
-        return;
     }
     for (const rank of boardDOM) {
         for (const square of rank) {
