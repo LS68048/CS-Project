@@ -153,7 +153,7 @@ function evaluate(move, color) {
     var board = game.board();
 
     if (move.captured != undefined)
-        score += evaluations[move.captured] * (game.turn() == color ? -1 : 1);
+        score += evaluations[move.captured] * (game.turn() == color ? 1 : -1);
     if (game.isCheckmate())
         score +=
             1000 *
