@@ -158,8 +158,8 @@ function evaluate(move, color) {
         score +=
             1000 *
             (color == game.turn()
-                ? -1
-                : 1); // Checkmate is really bad or really good
+                ? 1
+                : -1); // Checkmate is really bad or really good
     else if (game.isGameOver()) score -= 1000; // We want to WIN
 
     for (const i of board) {
