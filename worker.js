@@ -38,6 +38,7 @@ self.onmessage = function (event) {
                 ].move;
         }
         else if (difficulty > 0) {
+            rootNode.children.sort((a, b) => a.eval - b.eval);
             moveToPerform = rootNode.children[Math.floor(Math.random()) * third + (difficulty - 1) * third].move
         }
         else {
