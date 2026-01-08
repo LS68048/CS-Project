@@ -341,13 +341,7 @@ function move(fromEl, toEl, promotion) {
             toEl.getBoundingClientRect().left -
             promoter.getBoundingClientRect().left -
             8 // Genuinely don't know why but this needs an offset of 8 pixels
-        }px, ${to[1] == "1" ? 2 : 376}px)`;
-        var promoterClose = document.querySelector(".close-container");
-        promoter.insertBefore(
-            promoterClose,
-            promoter.children[to[1] == "1" ? promoter.childElementCount - 1 : 0]
-        );
-        //promoterClose.remove();
+        }px)`;
         promoter.style.display = "block";
         promoteSquare = toEl;
         clearHints();
