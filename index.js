@@ -95,9 +95,9 @@ function init_board() {
     // Restore moves list and highlighted squares if saved game
     if (gameHistory.length > 0) {
         refreshHistoryBoard();
-        var move = gameHistory[gameHistory.length - 1];
-        var fromEl = document.getElementById(move.from);
-        var toEl = document.getElementById(move.to);
+        var chessMove = gameHistory[gameHistory.length - 1];
+        var fromEl = document.getElementById(chessMove.from);
+        var toEl = document.getElementById(chessMove.to);
 
         highlightedSquares.push(fromEl, toEl);
         fromEl.classList.add("highlighted");
@@ -221,21 +221,16 @@ function mouseDown(e) {
 
     // Prevent dragging other side's pieces or your own when it's not your turn
     if (
-        e.target.parentNode.dataset.piece[0] != game.turn() ||
+        e.target.parentNode.dataset.piece[0] != playerColor ||
         game.turn() != playerColor
     ) {
+        console.log("SILLY BILLY YOU CANT DO THAT")
         draggedPiece.classList.remove("dragging");
         draggedPiece = null;
-
-        if (toggle) {
-            if (e.target.parentNode != recentHighlight)
-                recentHighlight.classList.remove("highlighted");
-            recentHighlight = null;
-            hoveredSquare.classList.remove("hovered");
-            hoveredSquare = null;
-            clearHints();
-            toggle = false;
-        }
+        if (e.target.parentNode != recentHighlight)
+            recentHighlight.classList.remove("highlighted");
+        clearHints();
+        toggle = false;
 
         return;
     }
@@ -326,6 +321,7 @@ function hint_move(e) {
 }
 
 function move(fromEl, toEl, promotion) {
+    draggedPiece = null;
     var from = fromEl.dataset.square;
     var to = toEl.dataset.square;
 
@@ -345,6 +341,7 @@ function move(fromEl, toEl, promotion) {
         promoter.style.display = "block";
         promoteSquare = toEl;
         clearHints();
+        updateDOM(); // Put that piece back please sir / ma'am
         return;
     }
 
@@ -451,7 +448,6 @@ function move(fromEl, toEl, promotion) {
     // }
 
     updateDOM(); // Update the entire board instead of just the piece moved to account for moves that affect other squares (e.g. castling and en passant)
-    draggedPiece = null;
 }
 
 const evaluations = {
